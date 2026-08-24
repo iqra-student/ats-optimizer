@@ -1,12 +1,14 @@
 import { useCallback, useRef, useState } from 'react'
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  'https://resumeintel-api-dahjfhbzh8gwhacg.centralindia-01.azurewebsites.net'
+
 export function useATSScanner() {
   const [status, setStatus] = useState('idle')
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
   const abortRef = useRef(null)
-
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
 
   const analyze = useCallback(async ({ file, resumeText, jobDescription }) => {
     abortRef.current?.abort()

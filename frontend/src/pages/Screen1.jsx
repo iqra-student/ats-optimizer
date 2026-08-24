@@ -1,32 +1,14 @@
 import { useCallback, useMemo, useState } from 'react'
-import { FileText, ClipboardPaste, Wand2, Sparkles, Loader2, Link2, Globe, AlertCircle } from 'lucide-react'
+import { FileText, ClipboardPaste, Wand2, Loader2, Link2, Globe, AlertCircle } from 'lucide-react'
 import Dropzone from '../components/Dropzone.jsx'
 import { useDebouncedValue } from '../hooks/useDebouncedValue.js'
 
+const API_BASE_URL = 
+  import.meta.env.VITE_API_BASE_URL || 
+  'https://resumeintel-api-dahjfhbzh8gwhacg.centralindia-01.azurewebsites.net'
+
 const MAX_CHARS = 10000
 
-const SAMPLE_JD = `Senior Cloud Architect
-
-We're looking for a Senior Cloud Architect to design and scale our multi-cloud infrastructure.
-
-Responsibilities:
-- Architect resilient, cost-efficient systems across AWS and Azure
-- Own our Kubernetes orchestration strategy (EKS/GKE)
-- Define Infrastructure-as-Code standards using Terraform
-- Partner with security to build a Cloud Security Architecture review process
-- Mentor engineers on CI/CD pipeline design and best practices
-
-Requirements:
-- 5+ years experience in AWS/Azure
-- Deep knowledge of microservices architecture
-- Hands-on experience with Kubernetes orchestration
-- Strong SQL/NoSQL database optimization background`
-
-/**
- * Screen1 — Input Dashboard
- * -------------------------
- * Resume dropzone + URL fetcher + job description textarea + primary CTA.
- */
 export default function Screen1({ onAnalyze, isLoading }) {
   const [file, setFile] = useState(null)
   const [rawText, setRawText] = useState('')
@@ -35,8 +17,6 @@ export default function Screen1({ onAnalyze, isLoading }) {
   const [isFetchingUrl, setIsFetchingUrl] = useState(false)
   const [urlError, setUrlError] = useState('')
 
-  // Debounced so the character counter doesn't re-render on every
-  // keystroke of a long paste — keeps typing responsive (better INP).
   const debouncedJd = useDebouncedValue(jd, 150)
   const charCount = debouncedJd.length
 
@@ -50,13 +30,8 @@ export default function Screen1({ onAnalyze, isLoading }) {
       const text = await navigator.clipboard.readText()
       setJd(text.slice(0, MAX_CHARS))
     } catch {
-      // Clipboard permission denied or unsupported — no-op, user can paste manually.
+      // Clipboard permission denied or unsupported
     }
-  }, [])
-
-  const handleTrySample = useCallback(() => {
-    setJd(SAMPLE_JD)
-    setUrlError('')
   }, [])
 
   const handleFetchJobUrl = useCallback(async () => {
@@ -65,7 +40,7 @@ export default function Screen1({ onAnalyze, isLoading }) {
     setUrlError('')
 
     try {
-      const res = await fetch('http://localhost:5000/api/fetch-job', {
+      const res = await fetch(`${API_BASE_URL}/api/fetch-job`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: jobUrl.trim() }),
@@ -140,14 +115,6 @@ export default function Screen1({ onAnalyze, isLoading }) {
               </span>
               <h2 className="font-semibold text-slate-900">Target Job Description</h2>
             </div>
-            <button
-              type="button"
-              onClick={handleTrySample}
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-brand-600 hover:text-brand-700"
-            >
-              <Sparkles size={13} />
-              Try Sample JD
-            </button>
           </div>
 
           {/* URL Fetch Input Bar */}
@@ -196,7 +163,7 @@ export default function Screen1({ onAnalyze, isLoading }) {
             value={jd}
             onChange={(e) => setJd(e.target.value.slice(0, MAX_CHARS))}
             maxLength={MAX_CHARS}
-            placeholder="Or paste the full job description text here directly. Include responsibilities and requirements for maximum accuracy…"
+            placeholder="Paste the full job description text here directly. Include responsibilities and requirements for maximum accuracy…"
             className="flex-1 min-h-[220px] w-full resize-none rounded-xl border border-slate-300 bg-slate-50 p-4 text-sm
               text-slate-800 placeholder:text-slate-400 focus-visible:outline focus-visible:outline-2
               focus-visible:outline-offset-2 focus-visible:outline-brand-600"
@@ -228,7 +195,7 @@ export default function Screen1({ onAnalyze, isLoading }) {
 
       {!file && !rawText && (
         <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-xs text-slate-400">
-          <FileText size={12} /> No resume yet? Try the sample job description to preview a full report.
+          <FileText size={12} /> Please upload a resume PDF or paste your resume text to begin analysis.
         </p>
       )}
     </div>
